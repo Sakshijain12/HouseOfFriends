@@ -15,7 +15,7 @@ const userSchema = mongoose.Schema(
 
     verification_status: {
       is_email_verified: { type: Boolean, default: false },
-      is_mobile_verified :  { type : Boolean , default : false}
+      is_mobile_verified: { type: Boolean, default: false }
     },
   },
   {
