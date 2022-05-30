@@ -1,6 +1,9 @@
 const House = require("../../model/house");
+const userDb = require('../../model/user.model');
 
 const houseServices = require('../house/house.services');
+
+const commonFunctionForAuth = require("../../helpers/common");
 
 const {
     authenticationFailed,
@@ -8,6 +11,8 @@ const {
     actionCompleteResponse,
     actionCompleteResponsePagination,
 } = require("../../common/common");
+
+let msg = "";
 
 exports.createHouse = async (req, res, next) => {
     try {
@@ -23,13 +28,13 @@ exports.createHouse = async (req, res, next) => {
             name,
             logo,
             displayIconUrl,
-            creator:req.user_obj_id,
+            creator: req.user_obj_id,
             membersOfHouse: [req.user_obj_id]
         }
 
         let detailsSaved = await new House(createObj).save();
 
-        let msg = "House created successfully";
+        msg = "House created successfully";
 
         actionCompleteResponse(res, detailsSaved, msg);
         console.log(detailsSaved);
@@ -39,15 +44,33 @@ exports.createHouse = async (req, res, next) => {
     }
 };
 
-// exports.getInvite = (req, res, next) => {
-//   const token = 123456789;
-//   res
-//     .status(201)
-//     .json({
-//       message: "Here is the joining link",
-//       joiningLink: `http://localhost:${process.env.PORT_NAME}/invite/${token}`,
-//     });
-// };
+exports.getInvite = async (req, res, next) => {
+    try {
+        let findCriteria = {
+            _id: mongoose.Types.ObjectId(req.user_obj_id),
+        };
+
+        let detailsSaved = await userDb.findOne({ findCriteria });
+        
+        let tokenEmbed = {
+            _id: detailsSaved._id,
+            user_details: detailsSaved.user_details,
+        };
+
+        let token = commonFunctionForAuth.generateAccessToken(tokenEmbed);
+
+        let joiningLink = `http://localhost:${process.env.PORT || 8000}/joinHouse/${token}`;
+
+        msg = "Join the house through this link"
+
+        actionCompleteResponse(res, joiningLink, msg);
+        console.log(detailsSaved);
+
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message);
+    }
+};
 
 // exports.addMember = (req, res, next) => {
 //   function validPattern(url) {

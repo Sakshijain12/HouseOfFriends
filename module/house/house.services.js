@@ -1,4 +1,5 @@
 const House = require('../../model/house');
+const userDb = require('../../model/house');
 
 module.exports.checkIfHouseExistsWIththisName = async (name) => {
     try {
