@@ -9,8 +9,8 @@ let responseMessages = {
 };
 
 exports.mongoUrl = {
-    NEW: "mongodb+srv://manjeetsingh:manjeetkakran@cluster0.tnnqc.mongodb.net/houseOfFriends?retryWrites=true",
-    OLD: "mongodb://manjeetsingh:manjeetkakran@cluster0-shard-00-00.uatbf.mongodb.net:27017,cluster0-shard-00-01.uatbf.mongodb.net:27017,cluster0-shard-00-02.uatbf.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-vn7m4d-shard-0&authSource=admin&retryWrites=true&w=majority"
+    NEW: "mongodb://hello:hello@cluster0-shard-00-00.uatbf.mongodb.net:27017,cluster0-shard-00-01.uatbf.mongodb.net:27017,cluster0-shard-00-02.uatbf.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-vn7m4d-shard-0&authSource=admin&retryWrites=true&w=majority",
+    OLD: "mongodb://hello:hello@cluster0-shard-00-00.uatbf.mongodb.net:27017,cluster0-shard-00-01.uatbf.mongodb.net:27017,cluster0-shard-00-02.uatbf.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-vn7m4d-shard-0&authSource=admin&retryWrites=true&w=majority"
 }
 
 exports.twilo = {
