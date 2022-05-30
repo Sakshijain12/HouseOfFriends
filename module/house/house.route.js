@@ -6,7 +6,7 @@ const { verifyJwtToken } = require('../../middleware/jwt');
 
 router.post('/createHouse', verifyJwtToken, houseController.createHouse);
 
-router.get('/invitation_link', houseController.getInvite);
+router.get('/invitation_link', verifyJwtToken ,houseController.getInvite);
 
 // router.post('/invite/:token',houseController.addMember);
 
