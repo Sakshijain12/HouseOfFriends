@@ -50,8 +50,8 @@ exports.getInvite = async (req, res, next) => {
             _id: mongoose.Types.ObjectId(req.user_obj_id),
         };
 
-        let detailsSaved = await userDb.findOne({ findCriteria });
-        
+        let detailsSaved = await userDb.findOne(findCriteria);
+
         let tokenEmbed = {
             _id: detailsSaved._id,
             user_details: detailsSaved.user_details,
@@ -59,7 +59,13 @@ exports.getInvite = async (req, res, next) => {
 
         let token = commonFunctionForAuth.generateAccessToken(tokenEmbed);
 
-        let joiningLink = `http://localhost:${process.env.PORT || 8000}/joinHouse/${token}`;
+        let findHouseCriteria = {
+            membersOfHouse: mongoose.Types.ObjectId(req.user_obj_id)
+        };
+
+        let house = await House.findOne(findHouseCriteria);
+
+        let joiningLink = `http://${process.env.HOST_NAME || "localhost"}:${process.env.PORT || 8000}/joinHouse/${token}/${house._id}`;
 
         msg = "Join the house through this link"
 

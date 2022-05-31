@@ -9,11 +9,7 @@ let responseMessages = {
 };
 
 exports.mongoUrl = {
-<<<<<<< HEAD
-    NEW: "mongodb+srv://manjeetsingh:manjeetkakran@cluster0.tnnqc.mongodb.net/houseOfFriends?retryWrites=true",
-=======
     NEW: "mongodb://hello:hello@cluster0-shard-00-00.uatbf.mongodb.net:27017,cluster0-shard-00-01.uatbf.mongodb.net:27017,cluster0-shard-00-02.uatbf.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-vn7m4d-shard-0&authSource=admin&retryWrites=true&w=majority",
->>>>>>> 1837c50a0b233a19cabfb54135b3daff8daad54b
     OLD: "mongodb://hello:hello@cluster0-shard-00-00.uatbf.mongodb.net:27017,cluster0-shard-00-01.uatbf.mongodb.net:27017,cluster0-shard-00-02.uatbf.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-vn7m4d-shard-0&authSource=admin&retryWrites=true&w=majority"
 }
 
