@@ -11,17 +11,17 @@ const configs = require('./common/common')
 /**
  * imports for routes
  */
-const authRoutes = require('./module/Auth/auth_route')
-const commonRoutes = require('./module/common/common.route')
-
+const authRoutes = require('./module/Auth/auth_route');
+const commonRoutes = require('./module/common/common.route');
+const houseRoutes = require('./module/house/house.route');
 
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));
 
-app.use(cookieParser());
+// app.use(cookieParser());
 
 app.use(cors());
-app.use(helmet());
+// app.use(helmet());
 
 
 app.use((req, res, next) => {
@@ -38,8 +38,9 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use("/auth", authRoutes)
-app.use("/common", commonRoutes)
+app.use("/auth", authRoutes);
+app.use("/common", commonRoutes);
+app.use("/house",houseRoutes);
 
 app.get("/", (req, res) => {
     res.status(200).json({
