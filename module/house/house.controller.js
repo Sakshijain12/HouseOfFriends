@@ -1,5 +1,7 @@
 const House = require("../../model/house");
 const userDb = require('../../model/user.model');
+const ChannelDb = require('../../model/channel.model');
+const ChatDB = require('../../model/chat.model');
 
 const houseServices = require('../house/house.services');
 
@@ -13,6 +15,201 @@ const {
 } = require("../../common/common");
 
 let msg = "";
+
+exports.getChannelChat = async (req, res, next) => {
+    try {
+        let { skip, limit, house_obj_id, channel_obj_id } = req.body
+        let skipI = skip || 0
+        let limitI = limit || 20
+
+        if (!(house_obj_id && channel_obj_id)) {
+            throw new Error("House feild & channel is required")
+        }
+        let checkIfUserHasAccessToHouse = {
+            membersOfHouse: {
+                $in: [req.user_obj_id]
+            },
+            _id: house_obj_id
+        }
+
+        let doesHaveAccess = await House.findOne(checkIfUserHasAccessToHouse)
+
+        if (!doesHaveAccess) {
+            throw new Error("You dont have access to the house")
+        }
+
+        let getChatCriteria = {
+            house_obj_id: house_obj_id,
+            channel_id: channel_obj_id,
+        }
+
+        let CHat = await ChatDB.find(getChatCriteria).skip(skipI).limit(limitI)
+
+        let CHatTotal = await ChatDB.countDocuments(getChatCriteria)
+
+
+        msg = "Chat data retrived";
+
+        let result = {
+            CHat,
+            CHatTotal
+        }
+
+        actionCompleteResponse(res, result, msg);
+
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message);
+
+    }
+}
+
+exports.createChat = async (req, res, next) => {
+    try {
+        let {
+            msg_type,
+            msg,
+            attachment_type,
+            attachment_url,
+            channel_id,
+            house_obj_id
+        } = req.body;
+
+
+        let user_ob_id = req.user_obj_id
+
+        let checkIfUserHasAccessToHouse = {
+            membersOfHouse: {
+                $in: [req.user_obj_id]
+            },
+            _id: house_obj_id
+        }
+
+        let doesHaveAccess = await House.findOne(checkIfUserHasAccessToHouse)
+        if (!doesHaveAccess) {
+            throw new Error("You dont have access to the house")
+        }
+
+        let insertObjCHat = {
+            msg_type,
+            msg,
+            attachment_type,
+            attachment_url,
+            channel_id,
+            house_obj_id,
+            msg_sent_by: req.user_obj_id
+        }
+
+        await new ChatDB(insertObjCHat).save()
+        msg = "Chat created successfully";
+
+
+        actionCompleteResponse(res, "", msg);
+
+
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message);
+    }
+}
+
+exports.getAlChannel = async (req, res, next) => {
+    try {
+        let { skip, limit, house_obj_id } = req.body
+        let skipI = skip || 0
+        let limitI = limit || 20
+
+        if (!house_obj_id) {
+            throw new Error("House feild is required")
+        }
+        let checkIfUserHasAccessToHouse = {
+            membersOfHouse: {
+                $in: [req.user_obj_id]
+            },
+            _id: house_obj_id
+        }
+
+        let doesHaveAccess = await House.findOne(checkIfUserHasAccessToHouse)
+
+        if (!doesHaveAccess) {
+            throw new Error("You dont have access to the house")
+        }
+
+        let findCriChannelExistsWIthName = {
+            house_obj_id: house_obj_id
+        }
+
+        let channelList = await ChannelDb.find(findCriChannelExistsWIthName).skip(skipI).limit(limitI)
+
+        let channelListTotal = await ChannelDb.countDocuments(findCriChannelExistsWIthName)
+
+
+        msg = "Channel data retrived";
+
+        let result = {
+            channelList,
+            channelListTotal
+        }
+
+        actionCompleteResponse(res, result, msg);
+
+
+
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message);
+
+    }
+}
+
+
+exports.createChannel = async (req, res, next) => {
+    try {
+
+        let { name_of_chanel, house_obj_id, channel_icon } = req.body
+
+        let checkIfUserHasAccessToHouse = {
+            membersOfHouse: {
+                $in: [req.user_obj_id]
+            },
+            _id: house_obj_id
+        }
+
+        let doesHaveAccess = await House.findOne(checkIfUserHasAccessToHouse)
+
+        if (!doesHaveAccess) {
+            throw new Error("You dont have access to the house")
+        }
+
+        let findCriChannelExistsWIthName = {
+            name_of_chanel,
+            house_obj_id: house_obj_id
+        }
+
+        let doesChannelExists = await ChannelDb.findOne(findCriChannelExistsWIthName)
+
+        if (doesChannelExists) {
+            throw new Error("Channel aldready exists with the name")
+        }
+
+        let insertObj = {
+            name_of_chanel: name_of_chanel,
+            house_obj_id: house_obj_id,
+            channel_icon
+        }
+
+        let channelCreatedResult = await new ChannelDb(insertObj).save()
+
+        msg = "Channel created successfully";
+
+        actionCompleteResponse(res, channelCreatedResult, msg);
+
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message);
+
+    }
+}
 
 exports.createHouse = async (req, res, next) => {
     try {
@@ -33,6 +230,15 @@ exports.createHouse = async (req, res, next) => {
         }
 
         let detailsSaved = await new House(createObj).save();
+
+        let insertObjChannel = {
+            name_of_chanel: "Default Channel",
+            house_obj_id: detailsSaved._id,
+            channel_icon: displayIconUrl,
+
+        }
+
+        await new ChannelDb(insertObjChannel).save()
 
         msg = "House created successfully";
 

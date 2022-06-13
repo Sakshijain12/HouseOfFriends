@@ -28,10 +28,7 @@ const houseSchema = new schema(
       type: schema.Types.ObjectId,
       ref: "userHof"
     }],
-    reqForHouse: [{
-      type: schema.Types.ObjectId,
-      ref: "userHof"
-    }],
+
   },
   {
     timestamps: true,
