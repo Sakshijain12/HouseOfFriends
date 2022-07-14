@@ -202,7 +202,7 @@ module.exports.register = async (req, res, next) => {
     await authServices.checkIfUserExistsWIththisemail(email);
     await authServices.checkIfUserExistsWithThisMobile(
       country_code,
-      phone_number
+      mobile_number
     );
 
     await authServices.checkIFTheOtpIsVerifiedForThisNumber(
