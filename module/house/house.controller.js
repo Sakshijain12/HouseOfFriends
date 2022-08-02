@@ -4,6 +4,7 @@ const ChannelDb = require('../../model/channel.model');
 const ChatDB = require('../../model/chat.model');
 const InvitationDb = require('../../model/invitationDb');
 const RemovalDb = require('../../model/removalDb');
+const mongoose = require('mongoose');
 
 const houseServices = require('../house/house.services');
 
@@ -285,7 +286,7 @@ exports.getInvite = async (req, res, next) => {
 exports.permissionVote = async (req, res, next) => {
     try {
         const senderHouseId = req.query.senderHouseId;
-        
+
         const waiting_member_id = req.body.waiting_member_id;
 
         const { voter_id: vote_value } = req.body.vote;
@@ -343,8 +344,8 @@ exports.permissionVote = async (req, res, next) => {
     }
 };
 
-exports.removeMember = async (req,res,next) =>{
-    try{
+exports.removeMember = async (req, res, next) => {
+    try {
         const houseId = req.query.HouseId;
 
         const to_be_removed_member_id = req.body.user_id;
@@ -382,13 +383,13 @@ exports.removeMember = async (req,res,next) =>{
         if (allowed_vote.length === membersOfHouse.length) {
             const index_of_to_be_removed_member = membersOfHouse.indexOf(to_be_removed_member_id);
 
-            if(index_of_to_be_removed_member >-1) {
-                membersOfHouse.splice(index_of_to_be_removed_member,1);
+            if (index_of_to_be_removed_member > -1) {
+                membersOfHouse.splice(index_of_to_be_removed_member, 1);
             }
 
-            let new_house = { ...house };
+            let new_house = { ...house, memberOfHouse };
 
-            new_house.memberOfHouse = new_members_of_house;
+            // new_house.memberOfHouse = new_members_of_house;
 
             await House.deleteOne(filter_for_house);
 
@@ -406,4 +407,84 @@ exports.removeMember = async (req,res,next) =>{
         console.log(err);
         sendActionFailedResponse(res, {}, err.message)
     }
-}
+};
+
+exports.deleteHouse = async (req, res, next) => {
+    try {
+        const { houseId, userId } = req.query;
+
+        let filter_for_house = {
+            _id: houseId
+        }
+
+        let house = await House.findOne(filter_for_house);
+
+        if (house.creator !== mongoose.Types.ObjectId(userId)) {
+            throw new Error("User is not allowed to delete the group , only creator of the group could do that");
+        }
+
+        const deletedHouse = await House.findByIdAndDelete(mongoose.Types.ObjectId(houseId));
+
+        msg = "House has been deleted successfully!";
+
+        actionCompleteResponse(res, deletedHouse, msg);
+
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message)
+    }
+};
+
+exports.fetchMembersList = async (req, res, next) => {
+    try {
+        const houseId = req.query.houseId;
+
+        let filter_for_house = {
+            _id: houseId
+        }
+
+        let house = await House.findOne(filter_for_house);
+
+        actionCompleteResponse(res, house.membersOfHouse, msg);
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message)
+    }
+};
+
+exports.leaveHouse = async (req, res, next) => {
+    try {
+        const houseId = req.query.HouseId;
+
+        const userId = req.body.userId;
+
+        let filter_for_house = {
+            _id: houseId
+        }
+
+        let house = await House.findOne(filter_for_house);
+
+        let membersOfHouse = house.membersOfHouse;
+
+        const index_of_to_be_removed_member = membersOfHouse.indexOf(userId);
+
+        if (index_of_to_be_removed_member > -1) {
+            membersOfHouse.splice(index_of_to_be_removed_member, 1);
+        }
+
+        let new_house = { ...house,membersOfHouse };
+
+        await House.deleteOne(filter_for_house);
+
+        let updated_house = await new House(new_house).save();
+
+        await RemovalDb.deleteOne({ _id: removal_permission_result._id });
+
+        msg = 'New Member is removed from the group';
+
+        actionCompleteResponse(res, updated_house, msg);
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message)
+    }
+};

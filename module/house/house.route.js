@@ -16,8 +16,14 @@ router.post('/create-channel', verifyJwtToken, houseController.createChannel);
 
 router.get('/get-all-channel', verifyJwtToken, houseController.getAlChannel)
 
-router.post('/create-chat', verifyJwtToken, houseController.createChat)
+router.post('/create-chat', verifyJwtToken, houseController.createChat);
 
-router.post('/get-all-chat-based-on-channel-id', verifyJwtToken, houseController.getChannelChat)
+router.post('/get-all-chat-based-on-channel-id', verifyJwtToken, houseController.getChannelChat);
+
+router.get('/delete_house',verifyJwtToken,houseController.deleteHouse);
+
+router.get('/get_members_of_house',verifyJwtToken,houseController.fetchMembersList);
+
+router.get('/leave_house',verifyJwtToken,houseController.leaveHouse);
 
 module.exports = router;
