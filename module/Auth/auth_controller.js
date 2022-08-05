@@ -45,16 +45,16 @@ exports.updateProfile = async (req, res, next) => {
       : "";
     payload.license_number
       ? (updateObj["legal_documentation.license_number"] =
-          payload.license_number)
+        payload.license_number)
       : "";
     payload.validity_of_document
       ? (updateObj["legal_documentation.validity_of_document"] =
-          payload.validity_of_document)
+        payload.validity_of_document)
       : "";
 
     payload.country_code_voice_phone
       ? (updateObj["mobile_details.country_code_voice_phone"] =
-          payload.country_code_voice_phone)
+        payload.country_code_voice_phone)
       : "";
     payload.voice_phone
       ? (updateObj["mobile_details.voice_phone"] = payload.voice_phone)
@@ -62,7 +62,7 @@ exports.updateProfile = async (req, res, next) => {
 
     payload.emergency_contact_person_name
       ? (updateObj["emergency_details.emergency_contact_person_name"] =
-          payload.emergency_contact_person_name)
+        payload.emergency_contact_person_name)
       : "";
     payload.phone_number
       ? (updateObj["emergency_details.phone_number"] = payload.phone_number)
@@ -383,7 +383,7 @@ module.exports.login = async (req, res, next) => {
     let token = commonFunctionForAuth.generateAccessToken(tokenEmbed);
 
     msg = "Login done successfully";
-    let resData = { token, userDetails : isUserExists };
+    let resData = { token, userDetails: isUserExists };
     actionCompleteResponse(res, resData, msg);
   } catch (err) {
     console.log(err);

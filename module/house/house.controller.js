@@ -2,6 +2,9 @@ const House = require("../../model/house");
 const userDb = require('../../model/user.model');
 const ChannelDb = require('../../model/channel.model');
 const ChatDB = require('../../model/chat.model');
+const InvitationDb = require('../../model/invitationDb');
+const RemovalDb = require('../../model/removalDb');
+const mongoose = require('mongoose');
 
 const houseServices = require('../house/house.services');
 
@@ -252,26 +255,22 @@ exports.createHouse = async (req, res, next) => {
 
 exports.getInvite = async (req, res, next) => {
     try {
-        let findCriteria = {
-            _id: mongoose.Types.ObjectId(req.user_obj_id),
-        };
+        const senderHouseId = req.query.houseId;
 
-        let detailsSaved = await userDb.findOne(findCriteria);
+        let checkIfUserHasAccessToHouse = {
+            membersOfHouse: {
+                $in: [req.user_obj_id]
+            },
+            _id: senderHouseId
+        }
 
-        let tokenEmbed = {
-            _id: detailsSaved._id,
-            user_details: detailsSaved.user_details,
-        };
+        let doesHaveAccess = await House.findOne(checkIfUserHasAccessToHouse)
 
-        let token = commonFunctionForAuth.generateAccessToken(tokenEmbed);
+        if (!doesHaveAccess) {
+            throw new Error("You dont have access to the house")
+        }
 
-        let findHouseCriteria = {
-            membersOfHouse: mongoose.Types.ObjectId(req.user_obj_id)
-        };
-
-        let house = await House.findOne(findHouseCriteria);
-
-        let joiningLink = `http://${process.env.HOST_NAME || "localhost"}:${process.env.PORT || 8000}/joinHouse/${token}/${house._id}`;
+        let joiningLink = `http://${process.env.HOST_NAME || "localhost"}:${process.env.PORT || 8000}/joinHouse/${senderHouseId}`;
 
         msg = "Join the house through this link"
 
@@ -284,84 +283,249 @@ exports.getInvite = async (req, res, next) => {
     }
 };
 
-// exports.addMember = (req, res, next) => {
-//   function validPattern(url) {
-//     var token = 123456789;
-//     if (token !== Number(req.params.token)) {
-//       flag = false;
-//     } else {
-//       var pattern = `http://localhost:${process.env.PORT_NAME}/invite/${token}`;
+exports.permissionVote = async (req, res, next) => {
+    try {
+        const senderHouseId = req.query.senderHouseId;
 
-//       var targetPattern = [];
+        const waiting_member_id = req.body.waiting_member_id;
 
-//       for (var i = 0; i < 80; i++) {
-//         targetPattern.push(url[i]);
-//       }
-//       var flag = true;
-//       for (var i = 0; i < pattern.length; i++) {
-//         if (targetPattern[i] == pattern[i]) {
-//           flag = true;
-//         } else {
-//           flag = false;
-//           break;
-//         }
-//       }
-//     }
-//     if (flag) {
-//       return true;
-//     } else {
-//       return false;
-//     }
-//   }
+        const { voter_id: vote_value } = req.body.vote;
 
-//   var { name, contactNumber } = req.body;
-//   var link = req.protocol + '://' + req.get('host') + req.originalUrl;
-//   console.log(link);
-//   if (validPattern(link)) {
-//     var member = new Member({
-//       name: name,
-//       joiningLink: link,
-//       contactNumber: contactNumber,
-//     });
-//     member
-//       .save()
-//       .then((data) => {
-//         console.log(data);
-//         return res
-//           .status(201)
-//           .json({ message: "Member added successfully!", records: data });
-//       })
-//       .catch((err) => {
-//         if (!err.statusCode) {
-//           err.statusCode = 500;
-//         }
-//         next(err);
-//       });
-//   } else {
-//     return res.status(500).json({ message: "Invalid link" });
-//   }
-// };
+        let filter_for_house = {
+            _id: senderHouseId
+        }
 
-// exports.deleteMember = (req, res, next) => {
-//   const contactNumber = req.query.contactNumber;
-//   console.log(contactNumber);
-//   Member.findOne({ contactNumber: contactNumber })
-//     .then((member) => {
-//       console.log(member);
-//       if (!member) {
-//         const error = new Error("Could not find the member");
-//         error.statusCode = 404;
-//         throw error;
-//       }
-//       Member.deleteOne({ contactNumber: contactNumber }).then(result => {
-//         return res.status(201).json({ message: "Succesfully deleted!" ,deleteCount : result});
-//       });
-//     })
-//     .catch((err) => {
-//       console.log(err);
-//       if (!err.statusCode) {
-//         err.statusCode = 500;
-//       }
-//       next(err);
-//     });
-// };
+        let house = await House.findOne(filter_for_house);
+
+        let membersOfHouse = house.membersOfHouse;
+
+        let permission_poll = [];
+
+        let allowed_vote = [];
+
+        for (let i = 0; i < membersOfHouse.length; i++) {
+            if (vote_value = true) {
+                allowed_vote.push(1);
+            }
+            permission_poll.push({
+                choices: [
+                    {
+                        vote: vote_value,
+                        voter_id: voter_id
+                    }
+                ]
+            })
+        };
+
+        let permission_result = await new InvitationDb(permission_poll).save();
+
+        if (allowed_vote.length === membersOfHouse.length) {
+            let new_members_of_house = membersOfHouse.push(waiting_member_id);
+
+            let new_house = { ...house };
+
+            new_house.memberOfHouse = new_members_of_house;
+
+            await House.deleteOne(filter_for_house);
+
+            let updated_house = await new House(new_house).save();
+
+            await InvitationDb.deleteOne({ _id: permission_result._id });
+
+            msg = 'New Member is Added to group';
+
+            actionCompleteResponse(res, updated_house, msg);
+        } else {
+            throw new Error("Member is not allowed to be a part of this house");
+        };
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message)
+    }
+};
+
+exports.removeMember = async (req, res, next) => {
+    try {
+        const houseId = req.query.HouseId;
+
+        const to_be_removed_member_id = req.body.user_id;
+
+        const { voter_id: vote_value } = req.body.vote;
+
+        let filter_for_house = {
+            _id: houseId
+        }
+
+        let house = await House.findOne(filter_for_house);
+
+        let membersOfHouse = house.membersOfHouse;
+
+        let permission_poll = [];
+
+        let allowed_vote = [];
+
+        for (let i = 0; i < membersOfHouse.length; i++) {
+            if (vote_value = true) {
+                allowed_vote.push(1);
+            }
+            permission_poll.push({
+                choices: [
+                    {
+                        vote: vote_value,
+                        voter_id: voter_id
+                    }
+                ]
+            })
+        };
+
+        let removal_permission_result = await new RemovalDb(permission_poll).save();
+
+        if (allowed_vote.length === membersOfHouse.length) {
+            const index_of_to_be_removed_member = membersOfHouse.indexOf(to_be_removed_member_id);
+
+            if (index_of_to_be_removed_member > -1) {
+                membersOfHouse.splice(index_of_to_be_removed_member, 1);
+            }
+
+            let new_house = { ...house, memberOfHouse };
+
+            // new_house.memberOfHouse = new_members_of_house;
+
+            await House.deleteOne(filter_for_house);
+
+            let updated_house = await new House(new_house).save();
+
+            await RemovalDb.deleteOne({ _id: removal_permission_result._id });
+
+            msg = 'New Member is removed from the group';
+
+            actionCompleteResponse(res, updated_house, msg);
+        } else {
+            throw new Error("Member can't be removed as every member of the group doesn't want to remove this member");
+        };
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message)
+    }
+};
+
+exports.deleteHouse = async (req, res, next) => {
+    try {
+        const { houseId, userId } = req.query;
+
+        let filter_for_house = {
+            _id: houseId
+        }
+
+        let house = await House.findOne(filter_for_house);
+
+        if (house.creator !== mongoose.Types.ObjectId(userId)) {
+            throw new Error("User is not allowed to delete the group , only creator of the group could do that");
+        }
+
+        const deletedHouse = await House.findByIdAndDelete(mongoose.Types.ObjectId(houseId));
+
+        msg = "House has been deleted successfully!";
+
+        actionCompleteResponse(res, deletedHouse, msg);
+
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message)
+    }
+};
+
+exports.fetchMembersList = async (req, res, next) => {
+    try {
+        const houseId = req.query.houseId;
+
+        let filter_for_house = {
+            _id: houseId
+        }
+
+        let house = await House.findOne(filter_for_house);
+
+        actionCompleteResponse(res, house.membersOfHouse, msg);
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message)
+    }
+};
+
+exports.leaveHouse = async (req, res, next) => {
+    try {
+        const houseId = req.query.HouseId;
+
+        const userId = req.body.userId;
+
+        let filter_for_house = {
+            _id: houseId
+        }
+
+        let house = await House.findOne(filter_for_house);
+
+        let membersOfHouse = house.membersOfHouse;
+
+        const index_of_to_be_removed_member = membersOfHouse.indexOf(userId);
+
+        if (index_of_to_be_removed_member > -1) {
+            membersOfHouse.splice(index_of_to_be_removed_member, 1);
+        }
+
+        let new_house = { ...house, membersOfHouse };
+
+        await House.deleteOne(filter_for_house);
+
+        let updated_house = await new House(new_house).save();
+
+        await RemovalDb.deleteOne({ _id: removal_permission_result._id });
+
+        msg = 'New Member is removed from the group';
+
+        actionCompleteResponse(res, updated_house, msg);
+    } catch (err) {
+        console.log(err.message);
+        sendActionFailedResponse(res, {}, err.message)
+    }
+};
+
+exports.getAllChannelForHouse = async (res, res, next) => {
+    try {
+        const houseId = req.query.houseId;
+
+        const channelList = await ChannelDb.find({ house_obj_id: houseId });
+
+        msg = "These are the list of available channel for this house";
+
+        actionCompleteResponse(res, channelList, msg);
+    } catch (err) {
+        console.log(err.message)
+        sendActionFailedResponse(res, {}, err.message)
+    };
+};
+
+exports.getAllHouseOfUser = async (req, res, next) => {
+    try {
+        const userId = req.query.userId;
+
+        let checkIfUserBelongToHouse = {
+            membersOfHouse: {
+                $in: [userId]
+            }
+        }
+
+        let HousesOfUser = await House.find(checkIfUserBelongToHouse)
+
+        if (!HousesOfUser) {
+            throw new Error(`User doesn't belong to any house`);
+        };
+
+        msg = "These are the house to which the user belongs"
+
+        actionCompleteResponse(res, HousesOfUser, msg);
+
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message);
+    };
+};

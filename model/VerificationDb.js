@@ -13,7 +13,7 @@ const verificationSchema = mongoose.Schema(
     email: { type: String },
     verification_type: {
       type: String,
-      enum: ["email", "phone"],
+      enum: ["email", "phone"], 
     },
     is_for_login: { type: Boolean, default: false },
     otp: {

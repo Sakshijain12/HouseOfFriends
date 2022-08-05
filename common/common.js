@@ -1,4 +1,3 @@
-
 let responseMessages = {
     PARAMETER_MISSING: "Insufficient information was supplied. Please check and try again.",
     ACTION_COMPLETE: "Successful",
