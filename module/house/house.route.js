@@ -26,4 +26,8 @@ router.get('/get_members_of_house',verifyJwtToken,houseController.fetchMembersLi
 
 router.get('/leave_house',verifyJwtToken,houseController.leaveHouse);
 
+router.get('/get_all_available_channel_for_house',verifyJwtToken,houseController.getAllChannelForHouse);
+
+router.get("/get_all_house_for_a_user",verifyJwtToken,houseController.getAllHouseOfUser);
+
 module.exports = router;

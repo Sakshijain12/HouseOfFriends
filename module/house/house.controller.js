@@ -472,7 +472,7 @@ exports.leaveHouse = async (req, res, next) => {
             membersOfHouse.splice(index_of_to_be_removed_member, 1);
         }
 
-        let new_house = { ...house,membersOfHouse };
+        let new_house = { ...house, membersOfHouse };
 
         await House.deleteOne(filter_for_house);
 
@@ -484,7 +484,48 @@ exports.leaveHouse = async (req, res, next) => {
 
         actionCompleteResponse(res, updated_house, msg);
     } catch (err) {
-        console.log(err);
+        console.log(err.message);
         sendActionFailedResponse(res, {}, err.message)
     }
+};
+
+exports.getAllChannelForHouse = async (res, res, next) => {
+    try {
+        const houseId = req.query.houseId;
+
+        const channelList = await ChannelDb.find({ house_obj_id: houseId });
+
+        msg = "These are the list of available channel for this house";
+
+        actionCompleteResponse(res, channelList, msg);
+    } catch (err) {
+        console.log(err.message)
+        sendActionFailedResponse(res, {}, err.message)
+    };
+};
+
+exports.getAllHouseOfUser = async (req, res, next) => {
+    try {
+        const userId = req.query.userId;
+
+        let checkIfUserBelongToHouse = {
+            membersOfHouse: {
+                $in: [userId]
+            }
+        }
+
+        let HousesOfUser = await House.find(checkIfUserBelongToHouse)
+
+        if (!HousesOfUser) {
+            throw new Error(`User doesn't belong to any house`);
+        };
+
+        msg = "These are the house to which the user belongs"
+
+        actionCompleteResponse(res, HousesOfUser, msg);
+
+    } catch (err) {
+        console.log(err);
+        sendActionFailedResponse(res, {}, err.message);
+    };
 };
