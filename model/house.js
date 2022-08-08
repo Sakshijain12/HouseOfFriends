@@ -9,10 +9,6 @@ const houseSchema = new schema(
       required: true,
       unique: true
     },
-    logo: {
-      type: String,
-      required: true,
-    },
     displayIconUrl: {
       type: String,
     },

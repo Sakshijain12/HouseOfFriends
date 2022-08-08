@@ -218,7 +218,6 @@ exports.createHouse = async (req, res, next) => {
     try {
         const {
             name,
-            logo,
             displayIconUrl,
         } = req.body;
 
@@ -226,7 +225,6 @@ exports.createHouse = async (req, res, next) => {
 
         const createObj = {
             name,
-            logo,
             displayIconUrl,
             creator: req.user_obj_id,
             membersOfHouse: [req.user_obj_id]
@@ -311,7 +309,9 @@ exports.permissionVote = async (req, res, next) => {
                 choices: [
                     {
                         vote: vote_value,
-                        voter_id: voter_id
+                        voter_id: voter_id,
+                        waiting_member_id:waiting_member_id,
+                        house_id:senderHouseId
                     }
                 ]
             })
@@ -372,7 +372,9 @@ exports.removeMember = async (req, res, next) => {
                 choices: [
                     {
                         vote: vote_value,
-                        voter_id: voter_id
+                        voter_id: voter_id,
+                        house_obj_id:houseId,
+                        to_be_removed_member_id:to_be_removed_member_id
                     }
                 ]
             })
