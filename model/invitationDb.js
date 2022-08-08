@@ -9,6 +9,14 @@ const invitationDb = new schema(
         voter_id: {
           type: schema.Types.ObjectId,
           ref: "userHof"
+        },
+        waiting_member_id:{
+          type:schema.Types.ObjectId,
+          ref:'userHof'
+        },
+        house_id:{
+          type:schema.Types.ObjectId,
+          ref:'HouseModel'
         }
       }
     ]

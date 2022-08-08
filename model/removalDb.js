@@ -9,6 +9,14 @@ const removalDb = new schema(
         voter_id: {
           type: schema.Types.ObjectId,
           ref: "userHof"
+        },
+        to_be_removed_member_id:{
+          type:schema.Types.ObjectId,
+          ref:'userHof'
+        },
+        house_id:{
+          type:schema.Types.ObjectId,
+          ref:'HouseModel'
         }
       }
     ]
