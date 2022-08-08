@@ -8,6 +8,14 @@ router.post('/create_house', verifyJwtToken, houseController.createHouse);
 
 router.get('/invitation_link', verifyJwtToken, houseController.getInvite);
 
+router.post('/create-channel', verifyJwtToken, houseController.createChannel);
+
+router.get('/get-all-channel', verifyJwtToken, houseController.getAlChannel)
+
+router.post('/create-chat', verifyJwtToken, houseController.createChat)
+
+router.post('/get-all-chat-based-on-channel-id', verifyJwtToken, houseController.getChannelChat)
+
 router.post('/joinHouse',verifyJwtToken,houseController.permissionVote);
 
 router.post('/remove_member',verifyJwtToken,houseController.removeMember);
