@@ -206,7 +206,7 @@ module.exports.register = async (req, res, next) => {
     );
 
     await authServices.checkIFTheOtpIsVerifiedForThisNumber(
-      country_code_normal_phone,
+      country_code,
       mobile_number
     );
 

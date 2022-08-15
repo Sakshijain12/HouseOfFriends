@@ -253,7 +253,7 @@ exports.createHouse = async (req, res, next) => {
 
 exports.getInvite = async (req, res, next) => {
     try {
-        const senderHouseId = req.query.houseId;
+        const senderHouseId = req.body.houseId;
 
         let checkIfUserHasAccessToHouse = {
             membersOfHouse: {
@@ -268,12 +268,11 @@ exports.getInvite = async (req, res, next) => {
             throw new Error("You dont have access to the house")
         }
 
-        let joiningLink = `http://${process.env.HOST_NAME || "localhost"}:${process.env.PORT || 8000}/joinHouse/${senderHouseId}`;
+        let joiningLink = `http://${process.env.HOST_NAME || "localhost"}:${process.env.PORT || 8000}/joinHouse?houseId=${senderHouseId}`;
 
         msg = "Join the house through this link"
 
         actionCompleteResponse(res, joiningLink, msg);
-        console.log(detailsSaved);
 
     } catch (err) {
         console.log(err);
@@ -283,7 +282,7 @@ exports.getInvite = async (req, res, next) => {
 
 exports.permissionVote = async (req, res, next) => {
     try {
-        const senderHouseId = req.query.senderHouseId;
+        const senderHouseId = req.query.houseId;
 
         const waiting_member_id = req.body.waiting_member_id;
 
@@ -310,8 +309,8 @@ exports.permissionVote = async (req, res, next) => {
                     {
                         vote: vote_value,
                         voter_id: voter_id,
-                        waiting_member_id:waiting_member_id,
-                        house_id:senderHouseId
+                        waiting_member_id: waiting_member_id,
+                        house_id: senderHouseId
                     }
                 ]
             })
@@ -373,8 +372,8 @@ exports.removeMember = async (req, res, next) => {
                     {
                         vote: vote_value,
                         voter_id: voter_id,
-                        house_obj_id:houseId,
-                        to_be_removed_member_id:to_be_removed_member_id
+                        house_obj_id: houseId,
+                        to_be_removed_member_id: to_be_removed_member_id
                     }
                 ]
             })
@@ -413,39 +412,41 @@ exports.removeMember = async (req, res, next) => {
 
 exports.deleteHouse = async (req, res, next) => {
     try {
-        const { houseId, userId } = req.query;
+        const houseId = req.body.houseId;
+        const userId = req.user_obj_id;
 
         let filter_for_house = {
-            _id: houseId
+            _id:houseId
         }
 
-        let house = await House.findOne(filter_for_house);
+        let house = await House.findById(filter_for_house);
 
-        if (house.creator !== mongoose.Types.ObjectId(userId)) {
+        if (house.creator == userId) {
+            const deletedHouse = await House.findByIdAndDelete(houseId);
+
+            msg = "House has been deleted successfully!";
+
+            actionCompleteResponse(res, deletedHouse, msg);
+        } else {
             throw new Error("User is not allowed to delete the group , only creator of the group could do that");
-        }
-
-        const deletedHouse = await House.findByIdAndDelete(mongoose.Types.ObjectId(houseId));
-
-        msg = "House has been deleted successfully!";
-
-        actionCompleteResponse(res, deletedHouse, msg);
+        };
 
     } catch (err) {
-        console.log(err);
+        console.log(err.message);
         sendActionFailedResponse(res, {}, err.message)
     }
 };
 
 exports.fetchMembersList = async (req, res, next) => {
     try {
-        const houseId = req.query.houseId;
+        const houseId = req.body.houseId;
 
         let filter_for_house = {
             _id: houseId
         }
 
         let house = await House.findOne(filter_for_house);
+        console.log(house);
 
         actionCompleteResponse(res, house.membersOfHouse, msg);
     } catch (err) {
@@ -456,7 +457,7 @@ exports.fetchMembersList = async (req, res, next) => {
 
 exports.leaveHouse = async (req, res, next) => {
     try {
-        const houseId = req.query.HouseId;
+        const houseId = req.body.HouseId;
 
         const userId = req.body.userId;
 
@@ -491,24 +492,9 @@ exports.leaveHouse = async (req, res, next) => {
     }
 };
 
-exports.getAllChannelForHouse = async (res, res, next) => {
-    try {
-        const houseId = req.query.houseId;
-
-        const channelList = await ChannelDb.find({ house_obj_id: houseId });
-
-        msg = "These are the list of available channel for this house";
-
-        actionCompleteResponse(res, channelList, msg);
-    } catch (err) {
-        console.log(err.message)
-        sendActionFailedResponse(res, {}, err.message)
-    };
-};
-
 exports.getAllHouseOfUser = async (req, res, next) => {
     try {
-        const userId = req.query.userId;
+        const userId = req.user_obj_id;
 
         let checkIfUserBelongToHouse = {
             membersOfHouse: {
