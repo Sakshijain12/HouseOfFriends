@@ -18,6 +18,6 @@ router.post('/send-otp-login' , validate(authValidator.sendOtpLogin) , authContr
 
 router.post('/login', validate(authValidator.login), authController.login);
 
-
+    
 
 module.exports = router;
