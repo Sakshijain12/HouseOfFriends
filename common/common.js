@@ -13,9 +13,10 @@ exports.mongoUrl = {
 }
 
 exports.twilo = {
-    TWILIO_SID: "AC27011995ab0321bcec8df7b56832f876",
-    TWILIO_AUTH: "566d68d0f5cb606ffcaa10b841651118",
-    TWILIO_SERVICE_ID: "MGb978fe8ad12c383b926b1921a42c22fe"
+    TWILIO_SID: "ACd9fe6a8d52945759bfdf3075f0519ddd",
+    TWILIO_AUTH: "5e0c2eef6ba89ef4c543d24b83e3c791",
+    TWILIO_PHONE_NUMBER : "+19107089968",
+    MessagingServiceSid : "MG035653fb10a5c27749b96600950d6dba"
 }
 
 

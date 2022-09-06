@@ -11,9 +11,9 @@ const userDb = require("../../model/user.model");
 const commonFolder = require("../../common/common");
 
 const authServices = require("./auth_services");
-const notificationService = require("../../helpers/NotificationService");
 
 const commonFunctionForAuth = require("../../helpers/common");
+const notificationService = require("../../helpers/NotificationService");
 
 let msg = "";
 
@@ -157,7 +157,7 @@ exports.sentotp = async (req, res, next) => {
       };
     } else {
       deleteCri = {
-        country_code: 91 || country_code,
+        country_code: +91 || country_code,
         mobile_number,
         verification_type: "phone",
       };
@@ -172,7 +172,7 @@ exports.sentotp = async (req, res, next) => {
 
     let msgToSend = `Hii  your otp is ${otp} and your otp expires in next 5 min `;
 
-    // await notificationService.sentMessageViaTwilio(msgToSend, country_code, mobile_number)
+    await notificationService.sentMessageViaTwilio(msgToSend, country_code, mobile_number)
 
     let insertObj = {
       country_code,
