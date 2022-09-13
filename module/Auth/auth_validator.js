@@ -100,6 +100,7 @@ module.exports.register = {
   }),
 };
 
+
 module.exports.sentotp = {
   body: Joi.object().keys({
     country_code: Joi.string().optional(),
@@ -108,6 +109,7 @@ module.exports.sentotp = {
     email: Joi.string().optional(),
   }),
 };
+
 
 exports.verifyOtp = {
   body: Joi.object().keys({

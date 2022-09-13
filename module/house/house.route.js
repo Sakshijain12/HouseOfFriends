@@ -18,7 +18,7 @@ router.post('/invitation_link', verifyJwtToken, houseController.getInvite);
 
 router.post('/delete_house',verifyJwtToken,houseController.deleteHouse);
 
-router.post("/get_all_house_for_a_user",verifyJwtToken,houseController.getAllHouseOfUser);
+router.get("/get_all_house_for_a_user",verifyJwtToken,houseController.getAllHouseOfUser);
 
 router.post('/get_members_of_house',verifyJwtToken,houseController.fetchMembersList);
 

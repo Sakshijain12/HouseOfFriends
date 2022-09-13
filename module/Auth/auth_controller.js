@@ -268,9 +268,11 @@ exports.sendOtpLogin = async (req, res, next) => {
         throw new Error("User doesnt exists");
       }
     } else {
-      let isUserExists = await userDb.findOne({
-        "user_details.phone": mobile_number,
+      let isUserExists = await userDb.find({
+        "user_details.phone.number": mobile_number,
       });
+
+      console.log(isUserExists)
 
       if (!isUserExists) {
         throw new Error("User doesnt exists");
@@ -367,7 +369,7 @@ module.exports.login = async (req, res, next) => {
       }
     } else {
       isUserExists = await userDb.findOne({
-        "user_details.phone": mobile_number,
+        "user_details.phone.number": mobile_number,
       });
 
       if (!isUserExists) {
